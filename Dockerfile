@@ -10,4 +10,4 @@ RUN CGO_ENABLED=0 GOOS=linux go install -ldflags="-w -s" -v .
 FROM gcr.io/distroless/base
 COPY --from=builder /go/bin/oauth2_proxy /
 
-CMD ["/oauth2_proxy"]
+ENTRYPOINT ["/oauth2_proxy"]
