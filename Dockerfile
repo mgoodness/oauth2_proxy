@@ -1,14 +1,13 @@
-FROM golang:1.9 AS builder
-
+FROM golang:1.11 AS builder
 WORKDIR /go/src/github.com/bitly/oauth2_proxy
-COPY . /go/src/github.com/bitly/oauth2_proxy/
-RUN go get -d -v
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo .
 
-FROM alpine:latest
+RUN go get github.com/golang/dep/cmd/dep
+COPY . .
+RUN dep ensure -v -vendor-only
 
-RUN apk --no-cache add ca-certificates
-WORKDIR /root/
-COPY --from=builder /go/src/github.com/bitly/oauth2_proxy/oauth2_proxy .
+RUN CGO_ENABLED=0 GOOS=linux go install -ldflags="-w -s" -v .
 
-ENTRYPOINT ["/root/oauth2_proxy"]
+FROM gcr.io/distroless/base
+COPY --from=builder /go/bin/oauth2_proxy /
+
+CMD ["/oauth2_proxy"]
